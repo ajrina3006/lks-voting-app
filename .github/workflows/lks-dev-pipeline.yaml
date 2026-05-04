@@ -1,0 +1,89 @@
+name: lks-prod-pipeline
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update docker version
+        run: docker --version
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push vote image
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/lks-voting-image:vote-prod-latest ./vote
+          docker push ${{ steps.login-ecr.outputs.registry }}/lks-voting-image:vote-prod-latest
+
+      - name: Build and push result image
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/lks-voting-image:result-prod-latest ./result
+          docker push ${{ steps.login-ecr.outputs.registry }}/lks-voting-image:result-prod-latest
+
+      - name: Build and push worker image
+        run: |
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/lks-voting-image:worker-prod-latest ./worker
+          docker push ${{ steps.login-ecr.outputs.registry }}/lks-voting-image:worker-prod-latest
+
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Deploy vote to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: vote/task-definition.json
+          service: lks-vote-service
+          cluster: lks-voting-cluster
+          wait-for-service-stability: true
+
+      - name: Deploy result to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: result/task-definition.json
+          service: lks-result-service
+          cluster: lks-voting-cluster
+          wait-for-service-stability: true
+
+      - name: Deploy worker to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: worker/task-definition.json
+          service: lks-worker-service
+          cluster: lks-voting-cluster
+          wait-for-service-stability: true
+
+      - name: Send SNS notification
+        run: |
+          aws sns publish \
+            --topic-arn ${{ secrets.AWS_SNS_ARN }} \
+            --subject "Deployment Successful" \
+            --message "New version The Voting App from <Provinsi> is Released !!"
