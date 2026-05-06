@@ -9,7 +9,7 @@
   "containerDefinitions": [
     {
       "name": "lks-result-container",
-      "image": "682791326537.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image:result-prod-latest",
+      "image": "682791326537.dkr.ecr.us-east-1.amazonaws.com/lks-voting-image",
       "essential": true,
       "portMappings": [
         {

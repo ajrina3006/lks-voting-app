@@ -17,11 +17,13 @@ namespace Worker
             try
             {
                 // Ganti ke endpoint ElastiCache
-                var redisConn = OpenRedisConnection("<ELASTICACHE_ENDPOINT>");
+                var redisConn = OpenRedisConnection("master.lks-redis.h0hlgw.use1.cache.amazonaws.com
+");
                 var redis = redisConn.GetDatabase();
 
                 // Ganti ke endpoint RDS
-                var pgsql = OpenDbConnection("Host=<RDS_ENDPOINT>;Username=admin;Password=LKSNCC2024;Database=postgres");
+                var pgsql = OpenDbConnection("Host=lks-rds.cnznixf4cggg.us-east-1.rds.amazonaws.com
+;Username=admin;Password=LKSNCC2024;Database=postgres");
 
                 var keepAliveCommand = pgsql.CreateCommand();
                 keepAliveCommand.CommandText = "SELECT 1";
@@ -32,7 +34,8 @@ namespace Worker
                     Thread.Sleep(100);
                     if (redisConn == null || !redisConn.IsConnected) {
                         Console.WriteLine("Reconnecting Redis");
-                        redisConn = OpenRedisConnection("<ELASTICACHE_ENDPOINT>"); // ← sama
+                        redisConn = OpenRedisConnection("master.lks-redis.h0hlgw.use1.cache.amazonaws.com
+"); // ← sama
                         redis = redisConn.GetDatabase();
                     }
                     string json = redis.ListLeftPopAsync("votes").Result;
@@ -43,7 +46,8 @@ namespace Worker
                         if (!pgsql.State.Equals(ConnectionState.Open))
                         {
                             Console.WriteLine("Reconnecting DB");
-                            pgsql = OpenDbConnection("Host=<RDS_ENDPOINT>;Username=admin;Password=LKSNCC2024;Database=postgres");
+                            pgsql = OpenDbConnection("Host=lks-rds.cnznixf4cggg.us-east-1.rds.amazonaws.com
+;Username=admin;Password=LKSNCC2024;Database=postgres");
                         }
                         else
                         {
