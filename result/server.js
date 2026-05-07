@@ -16,7 +16,7 @@ io.sockets.on('connection', function (socket) {
 
 // Ganti ke endpoint RDS kamu
 var pool = new Pool({
-  host: '<RDS_ENDPOINT>',       // ← ganti ini
+  host: 'lks-rds.cnznixf4cggg.us-east-1.rds.amazonaws.com',       // ← ganti ini
   user: 'admin',
   password: 'LKSNCC2024',
   database: 'postgres',

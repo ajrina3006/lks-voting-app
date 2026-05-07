@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 def get_redis():
     if not hasattr(g, 'redis'):
         g.redis = Redis(
-            host="<ELASTICACHE_ENDPOINT>",  # ← ganti ini
+            host="master.lks-redis.h0hlgw.use1.cache.amazonaws.com:6379",  # ← ganti ini
             port=6379,
             db=0,
             socket_timeout=5
