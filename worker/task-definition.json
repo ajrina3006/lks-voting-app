@@ -4,8 +4,8 @@
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
   "memory": "512",
-  "executionRoleArn": "arn:aws:iam::682791326537:role/LabRole",
-  "taskRoleArn": "arn:aws:iam::682791326537:role/LabRole",
+  "executionRoleArn": "arn:aws:iam::682791326537:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::682791326537:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "lks-worker-container",
